@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>UUV Self-noise Denoising Comparison Samples</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            line-height: 1.6;
+            margin: 0;
+            padding: 20px;
+            background-color: #f8f9fa;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            text-align: center;
+            color: #2c3e50;
+            margin-bottom: 30px;
+            font-size: 2.5em;
+        }
+        .sample-section {
+            margin-bottom: 40px;
+            border: 1px solid #e1e8ed;
+            border-radius: 8px;
+            padding: 20px;
+            background: #fafbfc;
+        }
+        .sample-title {
+            font-size: 1.3em;
+            font-weight: bold;
+            color: #2c3e50;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #3498db;
+        }
+        .audio-grid {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+        .audio-grid.second-row {
+            margin-bottom: 0;
+        }
+        .audio-item {
+            background: white;
+            padding: 12px;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            border-left: 4px solid #3498db;
+            min-width: 0;
+        }
+        .audio-item.ours {
+            border-left-color: #e74c3c;
+            background: linear-gradient(135deg, #fff5f5 0%, #ffffff 100%);
+        }
+        .audio-label {
+            font-weight: bold;
+            margin-bottom: 10px;
+            color: #34495e;
+        }
+        .audio-label.ours {
+            color: #e74c3c;
+        }
+        .ours-badge {
+            background: #e74c3c;
+            color: white;
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 0.8em;
+            margin-left: 8px;
+        }
+        audio {
+            width: 100%;
+            margin-top: 5px;
+        }
+        
+        @media (max-width: 768px) {
+            .audio-grid {
+                grid-template-columns: 1fr;
+            }
+            .container {
+                padding: 15px;
+            }
+            h1 {
+                font-size: 2em;
+            }
+        }
+
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>UUV Self-noise Denoising Comparison Samples</h1>
+        
+
+    </div>
+
+    <script>
+        // Add sample sections for all audio files
+        const audioFiles = [
+            "Motorboat_51_10_-7_0619_1_mid_00-18-19.100_to_00-18-49.100.wav",
+            "Motorboat_51_13_-5_0619_1_mid_00-18-04.800_to_00-18-34.800.wav",
+            "Motorboat_72_0_-5_0620_1_low_00-49-39.700_to_00-50-09.700.wav",
+            "Passengers_13_39_-8_0619_1_mid_00-22-04.300_to_00-22-34.300.wav",
+            "Passengers_35_14_-9_0620_1_low_00-48-25.600_to_00-48-55.600.wav",
+            "Passengers_7_6_-6_0619_1_mid_00-19-26.100_to_00-19-56.100.wav"
+        ];
+
+        const firstRowMethods = [
+            {name: "Noisy", folder: "noisy", isOurs: false},
+            {name: "UNet", folder: "unet", isOurs: false},
+            {name: "DCCRN", folder: "dccrn", isOurs: false},
+            {name: "BSRNN", folder: "bsrnn", isOurs: false},
+            {name: "FullSubNet", folder: "fullsubnet", isOurs: false}
+        ];
+
+        const secondRowMethods = [
+            {name: "Clean", folder: "clean", isOurs: false},
+            {name: "UNet+SINet", folder: "unet_enhanced", isOurs: true},
+            {name: "DCCRN+SINet", folder: "dccrn_enhanced", isOurs: true},
+            {name: "BSRNN+SINet", folder: "bsrnn_enhanced", isOurs: true},
+            {name: "FullSubNet+SINet", folder: "fullsubnet_enhanced", isOurs: true}
+        ];
+
+        function getSampleName(filename) {
+            // Extract the key part of filename (e.g., "Fishboat_73_22_-6" from "Fishboat_73_22_-6_0619_1_mid_00-21-14.600_to_00-21-44.600.wav")
+            const match = filename.match(/^([^_]+_[^_]+_[^_]+_[^_]+)/);
+            if (match) {
+                return match[1];
+            }
+            return filename.split('.')[0]; // fallback to filename without extension
+        }
+
+        // Generate HTML for all samples
+        const container = document.querySelector('.container');
+        
+        audioFiles.forEach(filename => {
+            const sampleSection = document.createElement('div');
+            sampleSection.className = 'sample-section';
+            
+            const sampleTitle = document.createElement('div');
+            sampleTitle.className = 'sample-title';
+            sampleTitle.textContent = getSampleName(filename);
+            
+            // First Row: Noisy + 4 Baselines
+            const firstGrid = document.createElement('div');
+            firstGrid.className = 'audio-grid';
+            
+            firstRowMethods.forEach(method => {
+                const audioItem = document.createElement('div');
+                audioItem.className = 'audio-item';
+                
+                const audioLabel = document.createElement('div');
+                audioLabel.className = 'audio-label';
+                audioLabel.textContent = method.name;
+                
+                const audio = document.createElement('audio');
+                audio.controls = true;
+                const source = document.createElement('source');
+                source.src = `wav/${method.folder}/${filename}`;
+                source.type = 'audio/wav';
+                audio.appendChild(source);
+                
+                audioItem.appendChild(audioLabel);
+                audioItem.appendChild(audio);
+                firstGrid.appendChild(audioItem);
+            });
+            
+            // Second Row: Clean + 4 SINet Methods
+            const secondGrid = document.createElement('div');
+            secondGrid.className = 'audio-grid second-row';
+            
+            secondRowMethods.forEach(method => {
+                const audioItem = document.createElement('div');
+                audioItem.className = method.isOurs ? 'audio-item ours' : 'audio-item';
+                
+                const audioLabel = document.createElement('div');
+                audioLabel.className = method.isOurs ? 'audio-label ours' : 'audio-label';
+                audioLabel.innerHTML = method.name + (method.isOurs ? '<span class="ours-badge">Ours</span>' : '');
+                
+                const audio = document.createElement('audio');
+                audio.controls = true;
+                const source = document.createElement('source');
+                source.src = `wav/${method.folder}/${filename}`;
+                source.type = 'audio/wav';
+                audio.appendChild(source);
+                
+                audioItem.appendChild(audioLabel);
+                audioItem.appendChild(audio);
+                secondGrid.appendChild(audioItem);
+            });
+            
+            sampleSection.appendChild(sampleTitle);
+            sampleSection.appendChild(firstGrid);
+            sampleSection.appendChild(secondGrid);
+            container.appendChild(sampleSection);
+        });
+    </script>
+</body>
+</html> 
